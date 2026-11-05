@@ -1,7 +1,0 @@
-{
-  "name": "civiceye",
-  "version": "0.1.0",
-  "private": true,
-  "description": "AI-powered civic issue reporting - SYNEX '26 prototype",
-  "scripts": { "dev": "node server.js" }
-}
