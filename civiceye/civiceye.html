@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CivicEye – See the problem. Report the issue.</title>
+<meta name="description" content="AI-powered civic issue reporting: snap a photo, get a ready-to-send report, track it on a community dashboard.">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMTIiIGZpbGw9IiMxNDIxM2QiLz48cGF0aCBkPSJNNiAyNGM0LjUtOCAxMC41LTEyIDE4LTEyczEzLjUwMCA0IDE4IDEyYy00LjUwMCA4LTEwLjUwMCAxMi0xOCAxMlMxMC41MDAgMzIgNiAyNHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Y2ZjFlNyIgc3Ryb2tlLXdpZHRoPSIyLjUwMCIvPjxjaXJjbGUgY3g9IjI0IiBjeT0iMjQiIHI9IjYuNTAwIiBmaWxsPSIjZTQ1NzJlIi8+PGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iMi41MDAiIGZpbGw9IiMxNDIxM2QiLz48L3N2Zz4=">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--paper:#f6f1e7;--card:#fffdf8;--ink:#14213d;--mute:#5b6478;--line:#e3dbc9;--accent:#e4572e;--accent-d:#c7431d;--ok:#2f7d4f;--r:14px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 'DM Sans',system-ui,sans-serif}
+h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;line-height:1.1;margin:0}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.narrow{max-width:720px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.top{background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.bar{display:flex;align-items:center;justify-content:space-between;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font:800 21px 'Bricolage Grotesque',system-ui,sans-serif;text-decoration:none}
+nav{display:flex;gap:4px}
+nav a{padding:8px 14px;border-radius:99px;text-decoration:none;font-weight:500}
+nav a:hover,nav a[aria-current]{background:var(--ink);color:var(--paper)}
+
+.btn{display:inline-block;border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:11px 20px;border-radius:99px;font:700 15px 'DM Sans',system-ui,sans-serif;cursor:pointer;text-decoration:none;transition:.15s}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-d);border-color:var(--accent-d)}
+.btn.sm{padding:7px 14px;font-size:14px}.btn.lg{width:100%;padding:16px;font-size:17px;margin:8px 0 40px}
+.btn:disabled{opacity:.55;cursor:wait}
+.link{background:none;border:0;padding:0;font:inherit;text-decoration:underline;cursor:pointer;color:var(--mute)}
+
+.hero{padding:64px 0 40px}
+.hero-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:center}
+.eyebrow{font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--accent);margin:0 0 14px}
+h1{font-size:clamp(34px,5.5vw,62px);font-weight:800;letter-spacing:-.02em}
+.lead{font-size:19px;color:var(--mute);max-width:52ch;margin:18px 0 28px}.lead.sm{font-size:17px;margin:8px 0 24px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.flow{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.flow li{display:flex;gap:16px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.flow b{font:800 22px 'Bricolage Grotesque',system-ui,sans-serif;color:var(--accent)}
+.kinds{padding-bottom:70px}.kinds h2{font-size:26px;margin-bottom:16px}
+#kinds{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+#kinds li{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c);padding:10px 16px;border-radius:10px;font-weight:500}
+
+.page-h{font-size:clamp(30px,4vw,42px);margin-top:36px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-bottom:18px}
+.step h2{font-size:22px;margin-bottom:16px;display:flex;gap:10px;align-items:center}
+.step h2 b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);font:700 15px 'DM Sans'}
+.field{display:block;font-weight:700;font-size:14px;margin-bottom:14px}
+.opt{font-weight:400;color:var(--mute)}
+input[type=text],select,textarea{display:block;width:100%;margin-top:6px;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font:400 16px 'DM Sans',system-ui,sans-serif;color:var(--ink)}
+input:focus,select:focus,textarea:focus{border-color:var(--ink);outline:none}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row.loc{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+
+.drop{display:grid;justify-items:center;gap:4px;text-align:center;padding:36px 16px;border:2px dashed #c9bfa8;border-radius:var(--r);cursor:pointer;margin-bottom:14px;background:#fff}
+.drop:hover,.drop.over{border-color:var(--accent);background:#fff6f2}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop .big{font-size:34px}.drop small{color:var(--mute)}
+#preview{display:flex;gap:14px;align-items:flex-end;margin-bottom:14px}
+#preview img{max-width:240px;max-height:200px;border-radius:12px;border:1px solid var(--line);object-fit:cover}
+.ai-status{padding:11px 14px;border-radius:10px;font-size:14px;margin-bottom:14px;display:flex;gap:10px;align-items:center}
+.ai-status.loading{background:#eef2fb}.ai-status.ok{background:#e8f4ec;color:#1f5a38}.ai-status.demo{background:#fff4dc;color:#7a5200}
+.spin{width:16px;height:16px;border:2.5px solid #b9c4de;border-top-color:var(--ink);border-radius:50%;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+#rMap{height:300px;border-radius:12px;border:1px solid var(--line);margin-bottom:14px;z-index:0}
+.hint{color:var(--mute);font-size:14px;margin:0}
+.error{background:#fde8e3;color:#9a2a10;padding:12px 14px;border-radius:10px;font-weight:500}
+
+.dash-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.stats button{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;text-align:left;font:500 14px 'DM Sans',system-ui,sans-serif;color:var(--mute);cursor:pointer}
+.stats b{display:block;font:800 34px 'Bricolage Grotesque',system-ui,sans-serif;color:var(--ink)}
+.stats button[aria-pressed=true]{border-color:var(--ink);box-shadow:0 3px 0 var(--ink)}
+#dMap{height:320px}
+.filters{margin:6px 0 16px}.filters select{width:auto;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.card.is-new{border-color:var(--accent);box-shadow:0 0 0 3px #e4572e33}
+.card img,.noimg{width:100%;height:170px;object-fit:cover;display:grid;place-items:center}
+.noimg{font-size:44px;background:color-mix(in srgb,var(--c) 14%,#fff)}
+.card-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h3{font-size:19px}.card p{margin:0;font-size:14.5px;color:var(--mute)}.card .where{color:var(--ink)}
+.meta{display:flex;gap:6px;flex-wrap:wrap}
+.chip,.sev,.demo-tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px}
+.chip{background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c)}
+.sev{text-transform:capitalize;background:#eee}.sev-high{background:#fde8e3;color:#9a2a10}.sev-medium{background:#fff4dc;color:#7a5200}.sev-low{background:#e8f4ec;color:#1f5a38}
+.demo-tag{border:1px dashed var(--mute);color:var(--mute)}
+.foot{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
+.status select{margin:0;padding:5px 8px;font:700 13px 'DM Sans',system-ui,sans-serif;width:auto;border-radius:99px}
+.st-pending select{background:#fff4dc}.st-progress select{background:#e5eefc}.st-resolved select{background:#e8f4ec}
+.emptybox{text-align:center;padding:50px 20px;border:2px dashed var(--line);border-radius:var(--r)}.emptybox h2{margin-bottom:8px}.emptybox p{color:var(--mute)}
+.tools{margin:30px 0 50px}
+.foot-site{border-top:1px solid var(--line);padding:22px 0;color:var(--mute);font-size:13px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:720px){.hero-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}nav a{padding:8px 10px}.hero{padding-top:36px}}
+
+[hidden]{display:none!important}
+
+</style></head>
+<body>
+<header class="top"><div class="wrap bar">
+  <a class="brand" href="#/"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMTIiIGZpbGw9IiMxNDIxM2QiLz48cGF0aCBkPSJNNiAyNGM0LjUtOCAxMC41LTEyIDE4LTEyczEzLjUwMCA0IDE4IDEyYy00LjUwMCA4LTEwLjUwMCAxMi0xOCAxMlMxMC41MDAgMzIgNiAyNHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Y2ZjFlNyIgc3Ryb2tlLXdpZHRoPSIyLjUwMCIvPjxjaXJjbGUgY3g9IjI0IiBjeT0iMjQiIHI9IjYuNTAwIiBmaWxsPSIjZTQ1NzJlIi8+PGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iMi41MDAiIGZpbGw9IiMxNDIxM2QiLz48L3N2Zz4=" alt="" width="34" height="34">CivicEye</a>
+  <nav><a href="#/">Home</a><a href="#/report" >Report</a><a href="#/dashboard" >Dashboard</a></nav>
+</div></header>
+<main>
+<section data-view="home" hidden>
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <p class="eyebrow">Synex ’26 · Developed India</p>
+    <h1>A pothole shouldn’t need to go viral first.</h1>
+    <p class="lead">Snap a photo. CivicEye’s AI drafts the report, you confirm the location, and it lands on a shared dashboard where everyone can see its status.</p>
+    <div class="cta"><a class="btn primary" href="#/report">Report an issue</a><a class="btn" href="#/dashboard">View dashboard</a></div>
+  </div>
+  <ol class="flow" aria-label="How it works">
+    <li><b>01</b><span>Upload a photo</span></li>
+    <li><b>02</b><span>AI suggests category + description</span></li>
+    <li><b>03</b><span>Confirm the location</span></li>
+    <li><b>04</b><span>Track it: Pending → In Progress → Resolved</span></li>
+  </ol>
+</div></section>
+<section class="wrap kinds"><h2>What you can report</h2>
+  <ul id="kinds"></ul></section>
+</section>
+<section data-view="report" class="wrap narrow" hidden>
+<h1 class="page-h">Report an issue</h1>
+<p class="lead sm">Three quick steps. The AI does the typing, you check it.</p>
+<form id="reportForm" novalidate>
+  <section class="step"><h2><b>1</b> Photo</h2>
+    <label class="drop" id="drop" tabindex="0">
+      <input type="file" id="photo" accept="image/*" capture="environment">
+      <span class="big">📷</span><strong>Tap to take or choose a photo</strong><small>or drag and drop an image here</small>
+    </label>
+    <div id="preview" hidden><img id="previewImg" alt="Your photo"><button type="button" class="btn sm" id="removePhoto">Remove photo</button></div>
+    <div id="aiStatus" hidden></div>
+    <label class="field">Anything to add? <span class="opt">(optional, helps the AI)</span>
+      <input id="note" type="text" maxlength="200" placeholder="e.g. big pothole near the bus stop"></label>
+    <button type="button" class="btn sm" id="reanalyse">Re-run AI analysis</button>
+  </section>
+
+  <section class="step"><h2><b>2</b> Details</h2>
+    <div class="row">
+      <label class="field">Category<select id="category" required></select></label>
+      <label class="field">Severity<select id="severity"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High – safety risk</option></select></label>
+    </div>
+    <label class="field">Title<input id="title" type="text" maxlength="80" placeholder="Short summary"></label>
+    <label class="field">Description<textarea id="description" rows="4" placeholder="Upload a photo and the AI will draft this for you."></textarea></label>
+  </section>
+
+  <section class="step"><h2><b>3</b> Location</h2>
+    <div class="row loc"><button type="button" class="btn sm" id="locate">📍 Use my location</button><span class="hint">or tap the map to drop a pin (drag to adjust)</span></div>
+    <div id="rMap"></div>
+    <label class="field">Address / landmark<input id="address" type="text" placeholder="Street, area, landmark"></label>
+    <p class="hint">Coordinates: <span id="coords">not set</span></p>
+  </section>
+
+  <p id="formError" class="error" role="alert" hidden></p>
+  <button class="btn primary lg" id="submit" type="submit">Submit report</button>
+</form>
+</section>
+<section data-view="dashboard" class="wrap" hidden>
+<div class="dash-head"><h1 class="page-h">Community dashboard</h1><a class="btn primary" href="#/report">+ New report</a></div>
+<div class="stats">
+  <button data-status="all" aria-pressed="true"><b id="nTotal">0</b>All</button>
+  <button data-status="pending" aria-pressed="false"><b id="nPending">0</b>Pending</button>
+  <button data-status="progress" aria-pressed="false"><b id="nProgress">0</b>In Progress</button>
+  <button data-status="resolved" aria-pressed="false"><b id="nResolved">0</b>Resolved</button>
+</div>
+<div id="mapWrap"><div id="dMap"></div></div>
+<div class="filters"><label class="sr" for="fCategory">Category</label><select id="fCategory"></select></div>
+<div id="list" class="grid"></div>
+<div id="empty" class="emptybox" hidden><h2>No reports yet</h2><p>Be the first, or load a few sample reports to see how the dashboard looks.</p>
+  <a class="btn primary" href="#/report">Report an issue</a> <button class="btn" id="seed">Load sample data</button></div>
+<p id="noMatch" class="hint" hidden>No reports match these filters.</p>
+<p class="hint tools" id="tools"><button class="link" id="clear">Clear all reports in this browser</button> · Status can be changed here for the demo; in a real deployment only the responsible authority would do this.</p>
+</section>
+</main>
+<footer class="foot-site"><div class="wrap">CivicEye is a community prototype built for SYNEX ’26 (Theme 2: Developed India). It organises reports and is not an official government portal.</div></footer>
+<script>
+window.CIVICEYE_CONFIG = {
+  // --- Supabase (shared database + photo storage). Leave empty = reports stay in this browser. ---
+  SUPABASE_URL: '',        // e.g. 'https://abcdxyz.supabase.co'
+  SUPABASE_ANON_KEY: '',   // anon / publishable key (public by design). NEVER the service_role key.
+  // --- AI photo analysis. Pick ONE; leave both empty for the basic keyword fallback. ---
+  AI_ENDPOINT: '',         // SAFE: your own server/edge function URL that holds the Gemini key
+  GEMINI_API_KEY: '',      // QUICK DEMO ONLY: visible to anyone who views this page's source!
+  GEMINI_MODEL: 'gemini-2.5-flash',
+};
+// Shared constants + helpers
+window.CE = {
+  CATEGORIES: {
+    road:        { label: 'Road / Pothole',     icon: '🕳️', color: '#c2410c' },
+    garbage:     { label: 'Garbage',            icon: '🗑️', color: '#4d7c0f' },
+    streetlight: { label: 'Streetlight',        icon: '💡', color: '#a16207' },
+    water:       { label: 'Water / Drainage',   icon: '💧', color: '#0369a1' },
+    other:       { label: 'Other',              icon: '📍', color: '#6b21a8' },
+  },
+  STATUSES: { pending: 'Pending', progress: 'In Progress', resolved: 'Resolved' },
+  DEFAULT_CENTER: [12.823, 80.0444], // Kattankulathur, Chennai - change freely
+  esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
+  ago(ts) {
+    const m = Math.floor((Date.now() - ts) / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + ' h ago';
+    return Math.floor(h / 24) + ' d ago';
+  },
+  toast(msg) {
+    let t = document.getElementById('toast');
+    if (!t) { t = document.createElement('div'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 3500);
+  },
+};
+
+document.getElementById('kinds').innerHTML=Object.values(CE.CATEGORIES).map(c=>'<li style="--c:'+c.color+'"><span>'+c.icon+'</span>'+c.label+'</li>').join('');
+// Report store. Uses Supabase (Postgres + Storage) when js/config.js is filled in,
+// otherwise falls back to localStorage so the app still works offline / before setup.
+// Same async API either way: list(), add(), setStatus(), seedDemo(), clear().
+(function () {
+  const cfg = window.CIVICEYE_CONFIG || {};
+  const REMOTE = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY);
+  const BASE = (cfg.SUPABASE_URL || '').replace(/\/$/, '');
+  const H = () => ({ apikey: cfg.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + cfg.SUPABASE_ANON_KEY });
+  const newId = () => 'CE-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 4).toUpperCase();
+
+  const fromRow = r => ({
+    id: r.id, category: r.category, severity: r.severity, title: r.title, description: r.description,
+    status: r.status, image: r.image_url, aiSource: r.ai_source, createdAt: new Date(r.created_at).getTime(),
+    location: { lat: r.lat, lng: r.lng, address: r.address },
+  });
+
+  const remote = {
+    async list() {
+      const r = await fetch(`${BASE}/rest/v1/reports?select=*&order=created_at.desc&limit=500`, { headers: H() });
+      if (!r.ok) throw new Error('Load failed');
+      return (await r.json()).map(fromRow);
+    },
+    async add(report) {
+      const id = newId();
+      let image_url = null;
+      if (report.image) {
+        try {
+          const blob = await (await fetch(report.image)).blob();
+          const path = `${id}.jpg`;
+          const up = await fetch(`${BASE}/storage/v1/object/report-photos/${path}`, {
+            method: 'POST', headers: { ...H(), 'Content-Type': 'image/jpeg' }, body: blob,
+          });
+          if (up.ok) image_url = `${BASE}/storage/v1/object/public/report-photos/${path}`;
+        } catch { /* submit without photo rather than lose the report */ }
+      }
+      const row = {
+        id, category: report.category, severity: report.severity, title: report.title, description: report.description,
+        image_url, lat: report.location?.lat ?? null, lng: report.location?.lng ?? null,
+        address: report.location?.address || null, ai_source: report.aiSource || null,
+      };
+      const r = await fetch(`${BASE}/rest/v1/reports`, {
+        method: 'POST', headers: { ...H(), 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify(row),
+      });
+      if (!r.ok) throw new Error('Could not save report');
+      return fromRow((await r.json())[0]);
+    },
+    async setStatus(id, status) {
+      await fetch(`${BASE}/rest/v1/reports?id=eq.${encodeURIComponent(id)}`, {
+        method: 'PATCH', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
+      });
+    },
+    async seedDemo() {}, async clear() {},
+  };
+
+  // ---------- local fallback ----------
+  const KEY = 'civiceye.reports.v1';
+  const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+  const write = list => {
+    try { localStorage.setItem(KEY, JSON.stringify(list)); return true; } catch { return false; }
+  };
+
+  const local = {
+    async list() { return read().sort((a, b) => b.createdAt - a.createdAt); },
+    async get(id) { return read().find(r => r.id === id); },
+    async add(report) {
+      const list = read();
+      const r = { ...report, id: 'CE-' + Date.now().toString(36).toUpperCase(), status: 'pending', createdAt: Date.now() };
+      list.push(r);
+      if (!write(list)) { // storage full: retry without the photo
+        r.image = null; if (!write(list)) throw new Error('Could not save report');
+      }
+      return r;
+    },
+    async setStatus(id, status) {
+      const list = read(); const r = list.find(x => x.id === id);
+      if (r) { r.status = status; write(list); }
+    },
+    async seedDemo() {
+      const now = Date.now(), h = 3600e3, c = CE.DEFAULT_CENTER;
+      const demo = [
+        ['road', 'high', 'Deep pothole on main road', 'Large pothole near the bus stop, about 40 cm wide. Two-wheelers are swerving around it.', 'GST Road, near bus stop', 0.004, 0.006, 'pending', 3],
+        ['garbage', 'medium', 'Overflowing garbage bin', 'Public bin is overflowing and waste is spilling onto the footpath.', 'Market Street', -0.006, 0.003, 'progress', 30],
+        ['streetlight', 'medium', 'Streetlight not working', 'Streetlight has been off, leaving the junction dark after sunset.', 'University Gate Road', 0.002, -0.008, 'pending', 52],
+        ['water', 'high', 'Water leakage from pipeline', 'Clean water is leaking from a damaged pipe and pooling on the road.', 'Anna Nagar 2nd Cross', -0.003, -0.004, 'resolved', 120],
+      ].map(([category, severity, title, description, address, dl, dn, status, hrs], i) => ({
+        id: 'CE-DEMO' + (i + 1), category, severity, title, description, status, image: null, demo: true,
+        location: { lat: c[0] + dl, lng: c[1] + dn, address }, createdAt: now - hrs * h,
+      }));
+      write([...read().filter(r => !r.demo), ...demo]);
+    },
+    async clear() { write([]); },
+  };
+
+  window.ReportStore = { ...(REMOTE ? remote : local), mode: REMOTE ? 'supabase' : 'local' };
+})();
+
+// Photo -> suggested category + description. Uses /api/analyze (Gemini, server-side key).
+// If the API is unreachable or unconfigured, falls back to a simple keyword guess from the
+// citizen's note so the form still works. The result says which source it came from.
+(function () {
+  const KEYWORDS = {
+    road: ['pothole', 'road', 'crack', 'footpath', 'pavement', 'speed breaker'],
+    garbage: ['garbage', 'trash', 'waste', 'dump', 'bin', 'litter', 'smell'],
+    streetlight: ['light', 'lamp', 'dark', 'streetlight', 'bulb'],
+    water: ['water', 'leak', 'drain', 'sewage', 'flood', 'pipe', 'overflow'],
+  };
+  const TEMPLATES = {
+    road: 'A damaged section of road or footpath is causing a hazard for vehicles and pedestrians. Please inspect and repair.',
+    garbage: 'Waste has accumulated and is not being cleared, creating a hygiene problem for nearby residents. Please arrange clearance.',
+    streetlight: 'A streetlight is not working, leaving the area dark and unsafe after sunset. Please repair or replace it.',
+    water: 'Water leakage or blocked drainage is affecting the area. Please inspect and fix to prevent waste and waterlogging.',
+    other: 'A civic issue needs attention at this location. Please inspect.',
+  };
+
+  function guess(note) {
+    const t = (note || '').toLowerCase();
+    let best = 'other', score = 0;
+    for (const [cat, words] of Object.entries(KEYWORDS)) {
+      const s = words.filter(w => t.includes(w)).length;
+      if (s > score) { best = cat; score = s; }
+    }
+    return {
+      category: best, severity: 'medium', confidence: score ? 0.4 : 0,
+      title: CE.CATEGORIES[best].label + ' issue',
+      description: note && note.length > 15 ? note : TEMPLATES[best],
+      source: 'demo',
+    };
+  }
+
+  const cfg = window.CIVICEYE_CONFIG || {};
+  const SCHEMA = {
+    type: 'OBJECT',
+    properties: {
+      category: { type: 'STRING', enum: ['road', 'garbage', 'streetlight', 'water', 'other'] },
+      severity: { type: 'STRING', enum: ['low', 'medium', 'high'] },
+      title: { type: 'STRING' }, description: { type: 'STRING' }, confidence: { type: 'NUMBER' },
+    },
+    required: ['category', 'severity', 'title', 'description', 'confidence'],
+  };
+  function promptFor(note) {
+    return 'You help citizens report local civic issues in India. Look at the photo and respond as JSON. ' +
+      'category must be one of: road (potholes, damaged roads/footpaths), garbage (overflowing bins, dumping), ' +
+      'streetlight (broken/non-working lights), water (leakage, drainage, waterlogging, sewage), other. ' +
+      'severity: low, medium or high (high = immediate safety risk). title: max 8 words. ' +
+      'description: 2-3 plain, factual sentences a municipal officer could act on; describe only what is visible, do not invent locations. ' +
+      'confidence: 0 to 1. If the photo shows no civic issue, use category "other" and low confidence.' +
+      (note ? ` Citizen note: "${String(note).slice(0, 300)}"` : '');
+  }
+  async function viaGemini(base64, mime, note) {
+    const model = cfg.GEMINI_MODEL || 'gemini-2.5-flash';
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cfg.GEMINI_API_KEY },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: promptFor(note) }, { inline_data: { mime_type: mime, data: base64 } }] }],
+        generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA },
+      }),
+    });
+    if (!r.ok) throw new Error(String(r.status));
+    const out = JSON.parse((await r.json()).candidates[0].content.parts[0].text);
+    if (!CE.CATEGORIES[out.category]) out.category = 'other';
+    return out;
+  }
+  async function viaEndpoint(base64, mime, note) {
+    const r = await fetch(cfg.AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: base64, mime, note }) });
+    if (!r.ok) throw new Error(String(r.status));
+    return r.json();
+  }
+
+  window.AI = {
+    async analyze(base64, mime, note) {
+      try {
+        if (cfg.AI_ENDPOINT) return { ...(await viaEndpoint(base64, mime, note)), source: 'gemini' };
+        if (cfg.GEMINI_API_KEY) return { ...(await viaGemini(base64, mime, note)), source: 'gemini' };
+        throw new Error('no ai');
+      } catch {
+        return guess(note);
+      }
+    },
+  };
+})();
+(function () {
+  const $ = id => document.getElementById(id);
+  const state = { image: null, loc: null, ai: null };
+  let map, marker;
+
+  // ---------- category select ----------
+  $('category').innerHTML = '<option value="">Choose a category…</option>' +
+    Object.entries(CE.CATEGORIES).map(([k, v]) => `<option value="${k}">${v.icon} ${v.label}</option>`).join('');
+
+  // ---------- photo ----------
+  const fileInput = $('photo'), drop = $('drop');
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('over');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => fileInput.files[0] && handleFile(fileInput.files[0]));
+  $('removePhoto').addEventListener('click', () => {
+    state.image = null; fileInput.value = '';
+    $('preview').hidden = true; drop.hidden = false; setAI(null);
+  });
+
+  function compress(file, max = 900) {
+    return new Promise((resolve, reject) => {
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => {
+        const s = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = () => reject(new Error('Not an image'));
+      img.src = url;
+    });
+  }
+
+  async function handleFile(file) {
+    if (!file.type.startsWith('image/')) return CE.toast('Please choose an image file.');
+    try { state.image = await compress(file); } catch { return CE.toast('Could not read that image.'); }
+    $('previewImg').src = state.image; $('preview').hidden = false; drop.hidden = true;
+    runAI();
+  }
+
+  // ---------- AI ----------
+  async function runAI() {
+    if (!state.image) return;
+    setAI('loading');
+    const b64 = state.image.split(',')[1];
+    const res = await AI.analyze(b64, 'image/jpeg', $('note').value.trim());
+    state.ai = res; setAI(res);
+    $('category').value = res.category || '';
+    $('severity').value = res.severity || 'medium';
+    $('title').value = res.title || '';
+    $('description').value = res.description || '';
+  }
+  function setAI(res) {
+    const b = $('aiStatus');
+    if (!res) { b.hidden = true; return; }
+    b.hidden = false; b.className = 'ai-status';
+    if (res === 'loading') { b.classList.add('loading'); b.innerHTML = '<span class="spin"></span> Analysing your photo…'; return; }
+    if (res.source === 'gemini') {
+      const pct = Math.round((res.confidence || 0) * 100);
+      b.classList.add('ok'); b.textContent = `✨ AI suggestion (${pct}% confident). Check it and edit anything that's wrong.`;
+    } else {
+      b.classList.add('demo'); b.textContent = 'AI is offline, so this is a basic draft from your note. Please pick the category and edit the description.';
+    }
+  }
+  $('reanalyse').addEventListener('click', runAI);
+
+  // ---------- location ----------
+  function setLoc(lat, lng, address) {
+    state.loc = { lat, lng, address: address ?? state.loc?.address ?? '' };
+    if (address !== undefined) $('address').value = address;
+    $('coords').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    if (map) {
+      if (!marker) marker = L.marker([lat, lng], { draggable: true }).addTo(map)
+        .on('dragend', e => { const p = e.target.getLatLng(); setLoc(p.lat, p.lng); reverse(p.lat, p.lng); });
+      else marker.setLatLng([lat, lng]);
+      map.setView([lat, lng], Math.max(map.getZoom(), 16));
+    }
+  }
+  async function reverse(lat, lng) {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&lat=${lat}&lon=${lng}`);
+      const d = await r.json();
+      if (d.display_name && !$('address').dataset.edited) { $('address').value = d.display_name; state.loc.address = d.display_name; }
+    } catch { /* best effort */ }
+  }
+  $('address').addEventListener('input', e => { e.target.dataset.edited = '1'; if (state.loc) state.loc.address = e.target.value; });
+
+  if (window.L) {
+    map = L.map('map').setView(CE.DEFAULT_CENTER, 14);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+    map.on('click', e => { setLoc(e.latlng.lat, e.latlng.lng); reverse(e.latlng.lat, e.latlng.lng); });
+  } else {
+    $('rMap').outerHTML = '<p class="hint">Map could not load (offline?). Use "Use my location" or type the address.</p>';
+  }
+
+  $('locate').addEventListener('click', () => {
+    if (!navigator.geolocation) return CE.toast('Location is not supported on this device.');
+    $('locate').disabled = true;
+    navigator.geolocation.getCurrentPosition(
+      p => { $('locate').disabled = false; $('address').dataset.edited = ''; setLoc(p.coords.latitude, p.coords.longitude); reverse(p.coords.latitude, p.coords.longitude); },
+      () => { $('locate').disabled = false; CE.toast('Could not get your location. Tap the map or type the address.'); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  });
+
+  // ---------- submit ----------
+  const form = $('reportForm');
+  function fail(id, msg) {
+    const el = $(id); el.focus(); el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    $('formError').textContent = msg; $('formError').hidden = false; return false;
+  }
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); $('formError').hidden = true;
+    if (!state.image) return fail('drop', 'Add a photo of the issue first.') ;
+    if (!$('category').value) return fail('category', 'Choose a category.');
+    if ($('description').value.trim().length < 10) return fail('description', 'Add a short description (at least 10 characters).');
+    const address = $('address').value.trim();
+    if (!state.loc && !address) return fail('address', 'Confirm the location: tap the map, use your location, or type the address.');
+
+    $('submit').disabled = true; $('submit').textContent = 'Submitting…';
+    try {
+      const r = await ReportStore.add({
+        image: state.image,
+        category: $('category').value,
+        severity: $('severity').value,
+        title: $('title').value.trim() || CE.CATEGORIES[$('category').value].label,
+        description: $('description').value.trim(),
+        location: { lat: state.loc?.lat ?? null, lng: state.loc?.lng ?? null, address },
+        aiSource: state.ai?.source || 'none',
+      });
+      resetForm();
+      $('submit').disabled = false; $('submit').textContent = 'Submit report';
+      location.hash = '#/dashboard?new=' + encodeURIComponent(r.id);
+    } catch {
+      $('submit').disabled = false; $('submit').textContent = 'Submit report';
+      $('formError').textContent = 'Could not save the report. Please try again.'; $('formError').hidden = false;
+    }
+  });
+
+  function resetForm() {
+    state.image = null; state.loc = null; state.ai = null;
+    form.reset(); fileInput.value = ''; $('preview').hidden = true; drop.hidden = false; setAI(null);
+    $('coords').textContent = 'not set'; $('address').dataset.edited = ''; $('formError').hidden = true;
+    if (marker && map) { map.removeLayer(marker); marker = null; }
+  }
+  window.ReportView = { show() { if (map) setTimeout(() => map.invalidateSize(), 50); } };
+})();
+(function () {
+  const $ = id => document.getElementById(id);
+  const f = { status: 'all', category: 'all' };
+  let reports = [], map, layer;
+  let newId = null;
+
+  $('fCategory').innerHTML = '<option value="all">All categories</option>' +
+    Object.entries(CE.CATEGORIES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+  $('fCategory').onchange = e => { f.category = e.target.value; render(); };
+  document.querySelectorAll('[data-status]').forEach(b => b.onclick = () => {
+    f.status = b.dataset.status;
+    document.querySelectorAll('[data-status]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    render();
+  });
+
+  if (window.L) {
+    map = L.map('dMap').setView(CE.DEFAULT_CENTER, 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+    layer = L.layerGroup().addTo(map);
+  } else { $('dMap').hidden = true; }
+
+  if (ReportStore.mode === 'supabase') { $('seed').hidden = true; $('clear').hidden = true; $('tools').hidden = true; }
+
+  async function load() {
+    try { reports = await ReportStore.list(); } catch { CE.toast('Could not load reports. Check your connection.'); reports = []; }
+    render();
+  }
+
+  function render() {
+    const c = { all: reports.length, pending: 0, progress: 0, resolved: 0 };
+    reports.forEach(r => c[r.status]++);
+    $('nTotal').textContent = c.all; $('nPending').textContent = c.pending;
+    $('nProgress').textContent = c.progress; $('nResolved').textContent = c.resolved;
+
+    const shown = reports.filter(r => (f.status === 'all' || r.status === f.status) && (f.category === 'all' || r.category === f.category));
+    $('empty').hidden = reports.length > 0;
+    $('noMatch').hidden = !(reports.length && !shown.length);
+
+    $('list').innerHTML = shown.map(r => {
+      const cat = CE.CATEGORIES[r.category] || CE.CATEGORIES.other;
+      return `<article class="card ${r.id === newId ? 'is-new' : ''}" id="${CE.esc(r.id)}">
+        ${r.image ? `<img src="${r.image}" alt="Photo of ${CE.esc(r.title)}" loading="lazy">` : `<div class="noimg" style="--c:${cat.color}">${cat.icon}</div>`}
+        <div class="card-body">
+          <div class="meta"><span class="chip" style="--c:${cat.color}">${cat.icon} ${cat.label}</span>
+            <span class="sev sev-${r.severity}">${CE.esc(r.severity)}</span>
+            ${r.demo ? '<span class="demo-tag">sample</span>' : ''}</div>
+          <h3>${CE.esc(r.title)}</h3>
+          <p>${CE.esc(r.description)}</p>
+          <p class="where">📍 ${CE.esc(r.location?.address || 'Pinned on map')}</p>
+          <div class="foot"><span>${CE.esc(r.id)} · ${CE.ago(r.createdAt)}</span>
+            <label class="status st-${r.status}"><span class="sr">Status</span>
+              <select data-id="${CE.esc(r.id)}">${Object.entries(CE.STATUSES).map(([k, v]) => `<option value="${k}" ${k === r.status ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+          </div>
+        </div></article>`;
+    }).join('');
+
+    $('list').querySelectorAll('select').forEach(s => s.onchange = async () => { await ReportStore.setStatus(s.dataset.id, s.value); load(); });
+
+    if (layer) {
+      layer.clearLayers();
+      const pts = [];
+      shown.filter(r => r.location?.lat != null).forEach(r => {
+        const cat = CE.CATEGORIES[r.category] || CE.CATEGORIES.other;
+        L.circleMarker([r.location.lat, r.location.lng], { radius: 9, color: '#fff', weight: 2, fillColor: cat.color, fillOpacity: .95 })
+          .bindPopup(`<strong>${CE.esc(r.title)}</strong><br>${cat.label} · ${CE.STATUSES[r.status]}`).addTo(layer);
+        pts.push([r.location.lat, r.location.lng]);
+      });
+      if (pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 16 });
+    }
+    if (newId) { const el = document.getElementById(newId); if (el && !render.done) { render.done = 1; el.scrollIntoView({ block: 'center' }); CE.toast('Report submitted ✓ ' + newId); } }
+  }
+
+  $('seed').onclick = async () => { await ReportStore.seedDemo(); load(); };
+  $('clear').onclick = async () => { if (confirm('Delete all reports stored in this browser?')) { await ReportStore.clear(); load(); } };
+  window.DashView = { show(id) { newId = id || null; render.done = 0; if (map) map.invalidateSize(); load(); } };
+})();
+(function () {
+  const titles = { home: 'CivicEye – See the problem. Report the issue.', report: 'Report an issue – CivicEye', dashboard: 'Dashboard – CivicEye' };
+  function route() {
+    const [name, qs] = location.hash.replace(/^#\/?/, '').split('?');
+    const view = ['report', 'dashboard'].includes(name) ? name : 'home';
+    document.querySelectorAll('[data-view]').forEach(s => s.hidden = s.dataset.view !== view);
+    document.querySelectorAll('header nav a').forEach(a => {
+      const on = a.getAttribute('href') === (view === 'home' ? '#/' : '#/' + view);
+      on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current');
+    });
+    document.title = titles[view];
+    if (view === 'report') ReportView.show();
+    if (view === 'dashboard') DashView.show(new URLSearchParams(qs || '').get('new'));
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+  route();
+})();
+</script>
+</body></html>
